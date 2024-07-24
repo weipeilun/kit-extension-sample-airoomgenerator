@@ -17,35 +17,46 @@ import json
 import carb
 import aiohttp
 import asyncio
+import yaml
+import os
 from .prompts import system_input, user_input, assistant_input
 from .deep_search import query_items
 from .item_generator import place_greyboxes, place_deepsearch_results
+import openai
 
 async def chatGPT_call(prompt: str):
     # Load your API key from an environment variable or secret management service
     settings = carb.settings.get_settings()
     
-    apikey = settings.get_as_string("/persistent/exts/omni.example.airoomgenerator/APIKey")
+    model_name = settings.get_as_string("/persistent/exts/omni.example.airoomgenerator/model_name")
+    openai_config_path = settings.get_as_string("/persistent/exts/omni.example.airoomgenerator/openai_config_path")
     my_prompt = prompt.replace("\n", " ")
     
     # Send a request API
     try:
-        parameters = {
-            "model": "gpt-3.5-turbo",
-            "messages": [
-                    {"role": "system", "content": system_input},
-                    {"role": "user", "content": user_input},
-                    {"role": "assistant", "content": assistant_input},
-                    {"role": "user", "content": my_prompt}
-                ]
-        }
-        chatgpt_url = "https://api.openai.com/v1/chat/completions"
-        headers = {"Authorization": "Bearer %s" % apikey}
+        llm_config_path = os.path.expanduser(openai_config_path)
+        assert os.path.exists(llm_config_path), f"Model config file not found at {llm_config_path}"
+        with open(llm_config_path, 'r') as f:
+            llm_config_dict = yaml.safe_load(f)
+        llm_config = llm_config_dict['llms'][model_name]
+
+        openai_client = openai.OpenAI(api_key=llm_config['api_key'],
+                                      base_url=llm_config['base_url'],
+                                      timeout=llm_config['timeout']
+                                      )
+        messages = [
+            {"role": "system", "content": system_input},
+            {"role": "user", "content": user_input},
+            {"role": "assistant", "content": assistant_input},
+            {"role": "user", "content": my_prompt}
+        ]
         # Create a completion using the chatGPT model
-        async with aiohttp.ClientSession() as session:
-            async with session.post(chatgpt_url, headers=headers, json=parameters) as r:
-                response = await r.json()
-        text = response["choices"][0]["message"]['content']
+        response = openai_client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            timeout=llm_config['timeout']
+        )
+        text = response.choices[0].message.content
     except Exception as e:
         carb.log_error("An error as occurred")
         return None, str(e)
@@ -63,7 +74,7 @@ async def chatGPT_call(prompt: str):
         
         return object_list, text
 
-async def call_Generate(prim_info, prompt, use_chatgpt, use_deepsearch, response_label, progress_widget):
+async def dcall_Generate(prim_info, prompt, use_chatgpt, use_deepsearch, response_label, progress_widget):
     run_loop = asyncio.get_event_loop()
     progress_widget.show_bar(True)
     task = run_loop.create_task(progress_widget.play_anim_forever())

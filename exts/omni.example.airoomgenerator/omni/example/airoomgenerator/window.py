@@ -73,7 +73,8 @@ class GenAIWindow(ui.Window):
         carb.log_info(values)
 
         settings = carb.settings.get_settings()
-        settings.set_string("/persistent/exts/omni.example.airoomgenerator/APIKey", values["APIKey"])
+        settings.set_string("/persistent/exts/omni.example.airoomgenerator/model_name", values["model_name"])
+        settings.set_string("/persistent/exts/omni.example.airoomgenerator/openai_config_path", values["openai_config_path"])
         settings.set_string("/persistent/exts/omni.example.airoomgenerator/deepsearch_nucleus_path", values["deepsearch_nucleus_path"])
         settings.set_string("/persistent/exts/omni.example.airoomgenerator/path_filter", values["path_filter"])
 
@@ -81,19 +82,23 @@ class GenAIWindow(ui.Window):
 
     def _open_settings(self):
         settings = carb.settings.get_settings()   
-        apikey_value = settings.get_as_string("/persistent/exts/omni.example.airoomgenerator/APIKey")
+        model_name = settings.get_as_string("/persistent/exts/omni.example.airoomgenerator/model_name")
+        openai_config_path = settings.get_as_string("/persistent/exts/omni.example.airoomgenerator/openai_config_path")
         nucleus_path = settings.get_as_string("/persistent/exts/omni.example.airoomgenerator/deepsearch_nucleus_path")
         path_filter = settings.get_as_string("/persistent/exts/omni.example.airoomgenerator/path_filter")
 
-        if apikey_value == "":
-            apikey_value = "Enter API Key Here"
+        if model_name == "":
+            model_name = "Enter Model Name Here"
+        if openai_config_path == "":
+            openai_config_path = "Enter OpenAI Config Path Here"
         if nucleus_path == "":
             nucleus_path = "(ENTERPRISE ONLY) Enter Nucleus Path Here"
         if path_filter == "":
             path_filter = ""
 
         field_defs = [
-            FormDialog.FieldDef("APIKey", "API Key: ", ui.StringField, apikey_value),
+            FormDialog.FieldDef("model_name", "Model Name: ", ui.StringField, model_name),
+            FormDialog.FieldDef("openai_config_path", "OpenAi Config Path: ", ui.StringField, openai_config_path),
             FormDialog.FieldDef("deepsearch_nucleus_path", "Nucleus Path: ", ui.StringField, nucleus_path),
             FormDialog.FieldDef("path_filter", "Path Filter: ", ui.StringField, path_filter)
         ]        

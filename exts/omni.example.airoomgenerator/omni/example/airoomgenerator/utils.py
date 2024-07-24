@@ -53,7 +53,7 @@ def CreateCubeFromCurve(curve_path: str, area_name: str = ""):
         select_new_prim=True
         )
     cube = stage.GetPrimAtPath(new_cube_path)
-    set_transformTRS_attrs(cube, scale=cube_scale)
+    set_transformTRS_attrs_mesh_prim(cube, scale=cube_scale)
     cube.CreateAttribute("primvar:area_name", Sdf.ValueTypeNames.String, custom=True).Set(area_name)
 
     omni.kit.commands.execute('DeletePrims',
@@ -98,6 +98,11 @@ def create_transformOps_for_xform(xform):
 def set_transformTRS_attrs(prim, translate: Gf.Vec3d = Gf.Vec3d(0,0,0), rotate: Gf.Vec3d=Gf.Vec3d(0,0,0), scale: Gf.Vec3d=Gf.Vec3d(1,1,1)):
     prim.GetAttribute('xformOp:translate').Set(translate)
     prim.GetAttribute('xformOp:rotateXYZ').Set(rotate)
+    prim.GetAttribute('xformOp:scale').Set(scale)
+
+def set_transformTRS_attrs_mesh_prim(prim, translate: Gf.Vec3d = Gf.Vec3d(0,0,0), orient: Gf.Vec3d=Gf.Quatd(1, 0,0,0), scale: Gf.Vec3d=Gf.Vec3d(1,1,1)):
+    prim.GetAttribute('xformOp:translate').Set(translate)
+    prim.GetAttribute('xformOp:orient').Set(orient)
     prim.GetAttribute('xformOp:scale').Set(scale)
     
 def get_bounding_box_dimensions(prim_path: str):
