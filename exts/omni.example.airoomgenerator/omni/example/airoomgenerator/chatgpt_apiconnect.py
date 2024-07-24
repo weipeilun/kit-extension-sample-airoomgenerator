@@ -15,7 +15,7 @@
 
 import json
 import carb
-import aiohttp
+import re
 import asyncio
 import yaml
 import os
@@ -62,9 +62,22 @@ async def chatGPT_call(prompt: str):
         return None, str(e)
 
     # Parse data that was given from API
-    try: 
+    try:
+        # Regex patterns to extract python code enclosed in GPT response
+        patterns = [
+            r'```json(.*?)```',
+            r'```(.*?)```'
+        ]
+        code_string = None
+        for pattern in patterns:
+            code_string = re.search(pattern, text, re.DOTALL)
+            if code_string is not None:
+                code_string = code_string.group(1).strip()
+                break
+        code_string = text if not code_string else code_string
+
         #convert string to  object
-        data = json.loads(text)
+        data = json.loads(code_string)
     except ValueError as e:
         carb.log_error(f"Exception occurred: {e}")
         return None, text
@@ -74,7 +87,7 @@ async def chatGPT_call(prompt: str):
         
         return object_list, text
 
-async def dcall_Generate(prim_info, prompt, use_chatgpt, use_deepsearch, response_label, progress_widget):
+async def call_Generate(prim_info, prompt, use_chatgpt, use_deepsearch, response_label, progress_widget):
     run_loop = asyncio.get_event_loop()
     progress_widget.show_bar(True)
     task = run_loop.create_task(progress_widget.play_anim_forever())

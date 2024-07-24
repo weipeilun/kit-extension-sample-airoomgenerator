@@ -61,18 +61,18 @@ def place_greyboxes(gpt_results, root_prim_path):
         length = item['Length']/100
         width = item['Width']/100
         height = item['Height']/100
-        x = item['X']
-        y = item['Y']+height*100*.5 #shift bottom of object to y=0
-        z = item['Z']
+        x = item['X']/100
+        y = item['Y']/100
+        z = item['Z']/100+height*.5 #shift bottom of object to z=0
         material = item['Material']
 
         # Create Prim
         parent_prim = create_prim(prim_parent_path)
         set_transformTRS_attrs(parent_prim)
         prim = create_prim(prim_path, 'Cube')
-        set_transformTRS_attrs(prim, translate=Gf.Vec3d(x,y,z), scale=Gf.Vec3d(length, height, width))
-        prim.GetAttribute('extent').Set([(-50.0, -50.0, -50.0), (50.0, 50.0, 50.0)])
-        prim.GetAttribute('size').Set(100)
+        set_transformTRS_attrs(prim, translate=Gf.Vec3d(x,y,z), scale=Gf.Vec3d(length, width, height))
+        prim.GetAttribute('extent').Set([(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)])
+        prim.GetAttribute('size').Set(1)
 
         index = index + 1
 
