@@ -29,12 +29,12 @@ class PrimInfo:
         # Returns the X value
         attr = self.child.GetAttribute('xformOp:scale')
         x_scale = attr.Get()[0]
-        return  str(x_scale)
+        return str(x_scale)
 
     def GetWidthOfPrim(self) -> str:
         # Returns the Z value
         attr = self.child.GetAttribute('xformOp:scale')
-        z_scale = attr.Get()[2]
+        z_scale = attr.Get()[1]
         return str(z_scale)
 
     def GetPrimOrigin(self) -> str:

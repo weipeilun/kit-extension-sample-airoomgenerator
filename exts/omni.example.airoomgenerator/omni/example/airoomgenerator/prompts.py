@@ -15,9 +15,9 @@
 
 system_input='''You are an area generator expert. Given an area of a certain size, you can generate a list of items that are appropriate to that area, in the right place, and with a representative material.
 
-You operate in a 3D Space. You work in a X,Y,Z coordinate system. X denotes width, Y denotes height, Z denotes depth. 0.0,0.0,0.0 is the default space origin.
+You operate in a 3D Space. You work in a X,Y,Z coordinate system. X denotes width, Y denotes height, Z denotes depth. 0,0,0 is the default space origin.
 
-You receive from the user the name of the area, the size of the area on X and Z axis in centimetres, the origin point of the area (which is at the center of the area).
+You receive from the user the name of the area, the size of the area on X and Y axis in centimetres, the origin point of the area (which is at the center of the area).
 
 You answer by only generating JSON files that contain the following information:
 
@@ -26,7 +26,7 @@ You answer by only generating JSON files that contain the following information:
 - Y: coordinate of the area on Y axis
 - Z: coordinate of the area on Z axis
 - area_size_X: dimension in cm of the area on X axis
-- area_size_Z: dimension in cm of the area on Z axis
+- area_size_Y: dimension in cm of the area on Y axis
 - area_objects_list: list of all the objects in the area
 
 For each object you need to store:
@@ -42,28 +42,50 @@ For each object you need to store:
 
 Each object name should include an appropriate adjective.
 
-Keep in mind, objects should be disposed in the area to create the most meaningful layout possible, and they shouldn't overlap.
-All objects must be within the bounds of the area size; Never place objects further than 1/2 the length or 1/2 the depth of the area from the origin.
-Also keep in mind that the objects should be disposed all over the area in respect to the origin point of the area, and you can use negative values as well to display items correctly, since origin of the area is always at the center of the area.
-
-Remember, you only generate JSON code, nothing else. It's very important.
+Restrictions:
+- Objects should be disposed in the area to create the most meaningful layout possible, and they shouldn't overlap.
+- All objects must be within the bounds of the area size; Never place objects further than 1/2 the length or 1/2 the depth of the area from the origin.
+- Objects should be disposed all over the area in respect to the origin point of the area, and you can use negative values as well to display items correctly, since origin of the area is always at the center of the area.
+- All sizes are in centimeters.
+- Only generate JSON code, nothing else.
 '''
 
-user_input="Warehouse, 1000x1000, origin at (0.0,0.0,0.0), generate a list of appropriate items in the correct places. Generate warehouse objects"
+user_input_template = """
+Area Name
+- {area_name}
 
-assistant_input='''{
+Area Size
+- {area_size}
+
+Area Origin At
+- {area_origin_at}
+
+User prompt
+- {user_prompt}
+
+Now, generate a list of appropriate items in the correct places.
+"""
+
+example_user_input = user_input_template.format(
+            area_name='Warehouse',
+            area_size='1000x1000',
+            area_origin_at='(0,0,0)',
+            user_prompt='Generate warehouse objects',
+        )
+
+example_assistant_input='''{
     "area_name": "Warehouse_Area",
-    "X": 0.0,
-    "Y": 0.0,
-    "Z": 0.0,
+    "X": 0,
+    "Y": 0,
+    "Z": 0,
     "area_size_X": 1000,
-    "area_size_Z": 1000,
+    "area_size_Y": 1000,
     "area_objects_list": [
         {
             "object_name": "Parts_Pallet_1",
             "X": -150,
-            "Y": 0.0,
-            "Z": 250, 
+            "Y": 250,
+            "Z": 0, 
             "Length": 100,
             "Width": 100,
             "Height": 10,
@@ -72,8 +94,8 @@ assistant_input='''{
         {
             "object_name": "Boxes_Pallet_2",
             "X": -150,
-            "Y": 0.0,
-            "Z": 150,
+            "Y": 150,
+            "Z": 0,
             "Length": 100,
             "Width": 100,
             "Height": 10,
@@ -82,8 +104,8 @@ assistant_input='''{
         {
             "object_name": "Industrial_Storage_Rack_1",
             "X": -150,
-            "Y": 0.0,
-            "Z": 50,
+            "Y": 50,
+            "Z": 0,
             "Length": 200,
             "Width": 50,
             "Height": 300,
@@ -92,8 +114,8 @@ assistant_input='''{
         {
             "object_name": "Empty_Pallet_3",
             "X": -150,
-            "Y": 0.0,
-            "Z": -50,
+            "Y": -50,
+            "Z": 0,
             "Length": 100,
             "Width": 100,
             "Height": 10,
@@ -102,8 +124,8 @@ assistant_input='''{
         {
             "object_name": "Yellow_Forklift_1",
             "X": 50,
-            "Y": 0.0,
-            "Z": -50,
+            "Y": -50,
+            "Z": 0,
             "Length": 200,
             "Width": 100,
             "Height": 250,
@@ -114,8 +136,8 @@ assistant_input='''{
         {
             "object_name": "Heavy_Duty_Forklift_2",
             "X": 150,
-            "Y": 0.0,
-            "Z": -50,
+            "Y": -50,
+            "Z": 0,
             "Length": 200,
             "Width": 100,
             "Height": 250,

@@ -23,12 +23,12 @@ def CreateCubeFromCurve(curve_path: str, area_name: str = ""):
     stage = ctx.get_stage()
     min_coords, max_coords = get_coords_from_bbox(curve_path)
     x,y,z = get_bounding_box_dimensions(curve_path)
-    xForm_scale = Gf.Vec3d(x, 1, z)
+    xForm_scale = Gf.Vec3d(x, y, 1)
     cube_scale = Gf.Vec3d(0.01, 0.01, 0.01)
     prim = stage.GetPrimAtPath(curve_path)
     origin = prim.GetAttribute('xformOp:translate').Get()
     if prim.GetTypeName() == "BasisCurves":
-        origin = Gf.Vec3d(min_coords[0]+x/2, 0, min_coords[2]+z/2)
+        origin = Gf.Vec3d(min_coords[0]+x/2, min_coords[1]+y/2, 0)
 
     area_path = '/World/Layout/Area'
     if len(area_name) != 0:

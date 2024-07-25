@@ -51,7 +51,6 @@ def place_deepsearch_results(gpt_results, query_result, root_prim_path):
         scale_object_if_needed(prim_parent_path)
 
 def place_greyboxes(gpt_results, root_prim_path):
-    index = 0
     for item in gpt_results:
         # Define Prim          
         prim_parent_path = root_prim_path + item['object_name'].replace(" ", "_")
@@ -73,8 +72,6 @@ def place_greyboxes(gpt_results, root_prim_path):
         set_transformTRS_attrs(prim, translate=Gf.Vec3d(x,y,z), scale=Gf.Vec3d(length, width, height))
         prim.GetAttribute('extent').Set([(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)])
         prim.GetAttribute('size').Set(1)
-
-        index = index + 1
 
         # Add Attribute and Material
         attr = prim.CreateAttribute("object_name", Sdf.ValueTypeNames.String)

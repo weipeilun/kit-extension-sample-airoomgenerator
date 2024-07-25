@@ -19,18 +19,17 @@ import re
 import asyncio
 import yaml
 import os
-from .prompts import system_input, user_input, assistant_input
+from .prompts import system_input, user_input_template, example_user_input, example_assistant_input
 from .deep_search import query_items
 from .item_generator import place_greyboxes, place_deepsearch_results
 import openai
 
-async def chatGPT_call(prompt: str):
+async def chatGPT_call(user_prompt: str):
     # Load your API key from an environment variable or secret management service
     settings = carb.settings.get_settings()
     
     model_name = settings.get_as_string("/persistent/exts/omni.example.airoomgenerator/model_name")
     openai_config_path = settings.get_as_string("/persistent/exts/omni.example.airoomgenerator/openai_config_path")
-    my_prompt = prompt.replace("\n", " ")
     
     # Send a request API
     try:
@@ -40,18 +39,19 @@ async def chatGPT_call(prompt: str):
             llm_config_dict = yaml.safe_load(f)
         llm_config = llm_config_dict['llms'][model_name]
 
-        openai_client = openai.OpenAI(api_key=llm_config['api_key'],
-                                      base_url=llm_config['base_url'],
-                                      timeout=llm_config['timeout']
-                                      )
         messages = [
             {"role": "system", "content": system_input},
-            {"role": "user", "content": user_input},
-            {"role": "assistant", "content": assistant_input},
-            {"role": "user", "content": my_prompt}
+            {"role": "user", "content": example_user_input},
+            {"role": "assistant", "content": example_assistant_input},
+            {"role": "user", "content": user_prompt}
         ]
+
         # Create a completion using the chatGPT model
-        response = openai_client.chat.completions.create(
+        openai_client = openai.AsyncOpenAI(api_key=llm_config['api_key'],
+                                          base_url=llm_config['base_url'],
+                                          timeout=llm_config['timeout']
+                                          )
+        response = await openai_client.chat.completions.create(
             model=model_name,
             messages=messages,
             timeout=llm_config['timeout']
@@ -94,15 +94,20 @@ async def call_Generate(prim_info, prompt, use_chatgpt, use_deepsearch, response
     response = ""
     #chain the prompt
     area_name = prim_info.area_name.split("/World/Layout/")
-    concat_prompt = area_name[-1].replace("_", " ") + ", " + prim_info.length + "x" + prim_info.width + ", origin at (0.0, 0.0, 0.0), generate a list of appropriate items in the correct places. " + prompt
+    user_prompt = user_input_template.format(
+        area_name=area_name[-1].replace("_", " "),
+        area_size=f'{round(float(prim_info.length) * 100)}x{round(float(prim_info.width) * 100)}',
+        area_origin_at='(0,0,0)',
+        user_prompt=prompt,
+    )
     root_prim_path = "/World/Layout/GPT/"
     if prim_info.area_name != "":
-        root_prim_path= prim_info.area_name + "/items/"
+        root_prim_path = prim_info.area_name + "/items/"
     
     if use_chatgpt:          #when calling the API
-        objects, response = await chatGPT_call(concat_prompt)
+        objects, response = await chatGPT_call(user_prompt)
     else:                       #when testing and you want to skip the API call
-        data = json.loads(assistant_input)
+        data = json.loads(example_assistant_input)
         objects = data['area_objects_list']
     if objects is None:
         response_label.text = response
